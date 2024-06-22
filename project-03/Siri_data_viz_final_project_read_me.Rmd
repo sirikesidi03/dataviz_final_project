@@ -1,0 +1,67 @@
+---
+title: "Final_project_Readme.md"
+author: "Siri Kesidi- ksiri7091@floridapoly.edu"
+date: "2024-06-22"
+output: html_document
+---
+
+# **README.md FILE**
+# **DATA VISUALISATION FINAL PROJECT**
+# **Decoding IPL Dynamics: A Data Visualization Exploration**
+
+- - -
+
+>**motivation **
+
+This project explores Kaggle's Indian Premier League (IPL) dataset to find information on individual statistics, team performances, and match results. Considering the IPL's status as one of the most popular cricket leagues globally, the purpose of this analysis is to identify patterns and trends that illustrate the league's dynamics throughout time. These variables give insights on in-depth analysis of batsmen,bowler and team performance.
+
+- - -
+
+- - -
+
+>**Data Description **
+
+The data set includes match ID, season year, location, date, and important match facts, among
+other details related to IPL matches played in different seasons. Whether or not the
+Duckworth-Lewis technique is used because of weather delays, it provides information about the
+teams that are playing, the results of their matches, and the results of their tosses. Details on
+the venue, player of the match, victory margins, and umpire identities are given. While
+Duckworth-Lewis applications and victory margins are examples of numerical variables, most
+qualities are recorded as character data types. In-depth documentation is also kept of
+cricket-specific information such as innings, batting and bowling teams, overs, balls, runs scored,
+extra runs, and player dismissals.
+
+- - -
+
+- - -
+
+>**Findings from plot **
+
+1. Winning the toss significantly increases the chances of winning the match, as indicated by the majority of matches where the toss winner also emerged victorious.
+
+2. The box plot illustrates the distribution of runs scored by teams when batting first and winning matches, providing insights into their batting prowess in setting and defending targets.
+
+3. The treemap visualizes the runs scored by Virat Kohli against different bowlers, highlighting the bowlers against whom he has been most successful.
+
+4. The bar plot showcases the distribution of runs scored by each cricket team across different run types, offering insights into their batting performance and strengths.
+
+5. The line plot demonstrates the total wickets taken by each team across seasons, indicating the bowling strength and consistency of each team over time.
+
+6. The tree maps display the runs scored by the top 3 batsmen against different bowling teams, showcasing their dominance and proficiency across various opponents.
+
+7. The bar plot highlights the top 10 batsmen with the highest strike rates, providing insights into their ability to score runs quickly and effectively.
+
+8. The treemap illustrates the types of dismissals for specific players, revealing their vulnerabilities or strengths against different bowling strategies.
+
+9. The scatter plot visualizes the performance of top batsmen in terms of runs scored versus balls faced in various matches, offering insights into their batting strategies and effectiveness.
+
+- - -
+
+
+- - -
+
+>**Conclusion **
+
+The graphs and chart offer an in-depth summary of the IPL's history, team performances, and player statistics.Through a comprehensive analysis of various aspects of IPL data, including match outcomes, batting and bowling performances, dismissal patterns, and player statistics, we gain valuable insights into the dynamics of one of the most popular cricket leagues globally.  They showcase the league's expansion, the competitive scene, and individual player perspectives. This research not only improves our understanding of the IPL, but also provides important data for teams and players to strategize and improve. The project successfully employs data visualization methods to make the complicated statistics more accessible and educational, highlighting the league's impact on the sport and economic significance.
+
+- - -

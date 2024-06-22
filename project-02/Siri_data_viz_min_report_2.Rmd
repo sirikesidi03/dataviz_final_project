@@ -1,0 +1,246 @@
+---
+title: "Siri_Decoding_IPL_analysis"
+author: "Siri Kesidi"
+date: "2024-06-15"
+output: html_document
+---
+
+# ** Introduction **
+
+For this mini project , the dataset taken from kaggle.The Indian Premier League (IPL) is a professional Twenty20 cricket league in India, typically held between March and May each year. It features eight to ten teams representing various cities or states across India. Established by the Board of Control for Cricket in India (BCCI) in 2007, the IPL is the world’s most-attended cricket league and has a significant brand value.
+
+
+# Clear all the dataset in environment
+
+```{r}
+rm(list=ls())
+```
+
+
+# Loading Required libraries
+```{r}
+library(tidyr)
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(readr)
+library(sf)
+library(leaflet)
+library(plotly)
+library(randomForest)
+library(caret)
+library(pROC)
+```
+
+
+# Importing data
+```{r}
+
+
+matches <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_kesidi_IPL_Decoding_Data_viz_mini_2/Siri_MP_2_data/matches.csv")
+
+deliveries <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_kesidi_IPL_Decoding_Data_viz_mini_2/Siri_MP_2_data/deliveries.csv")
+
+```
+
+
+
+# **Data Description**
+The data set includes match ID, season year, location, date, and important match facts, among other details related to IPL matches played in different seasons. Whether or not the Duckworth-Lewis technique is used because of weather delays, it provides information about the teams that are playing, the results of their matches, and the results of their tosses. Details on the venue, player of the match, victory margins, and umpire identities are given. While Duckworth-Lewis applications and victory margins are examples of numerical variables, most qualities are recorded as character data types. In-depth documentation is also kept of cricket-specific information such as innings, batting and bowling teams, overs, balls, runs scored, extra runs, and player dismissals.
+
+
+```{r}
+summary(matches)
+```
+
+```{r}
+summary(deliveries)
+```
+
+# Structure of the data
+
+```{r}
+str(deliveries)
+```
+
+
+```{r}
+str(matches)
+```
+
+# show the distribution of total runs per over for each team, allowing for a comparison of their performance across overs.
+```{r}
+
+# Calculate total runs per over per team
+team_runs_per_over <- deliveries %>%
+  group_by(batting_team, over) %>%
+  summarise(total_runs = sum(total_runs)) %>%
+  ungroup()
+
+team_runs_per_over
+
+```
+
+
+
+```{r}
+# Create a static line plot using ggplot2 with facets
+line_plot <- ggplot(team_runs_per_over, aes(x = over, y = total_runs, color = batting_team)) +
+  geom_line() +
+  facet_wrap(~ batting_team, scales = "free_y") +
+  labs(title = "Total Runs Scored per Over by Teams",
+       x = "Over",
+       y = "Total Runs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Convert the static line plot to an interactive plot using plotly
+interactive_line_plot <- ggplotly(line_plot)
+
+# Save the interactive plot as a self-contained HTML file
+htmlwidgets::saveWidget(interactive_line_plot, "team_runs_per_over_line_plot.html")
+
+interactive_line_plot
+```
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart I planned to create for this assignment was a static line plot showing the total runs scored per over by each team, with facets for each batting team. To prepare the data, I first grouped the deliveries dataset by batting team and over, then calculated the sum of total runs for each combination. This involved basic data cleaning steps such as filtering and aggregating the data.
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+With the plots, I can illustrate the scoring patterns of each team over the course of an innings, highlighting periods of aggressive scoring or slow accumulation. The static line plot allows for easy comparison between teams, revealing any disparities in scoring rates or consistency. Difficulties encountered included ensuring the readability of the plot with multiple facets and selecting appropriate color schemes for clarity. Additional approaches to explore the data could include analyzing the distribution of runs scored in different overs.
+
+# How did you apply the principles of data visualizations and design for this assignment?
+ Clear labels and titles were provided to aid interpretation, and the use of facets allowed for easy comparison between teams. The interactive element enhances engagement by allowing viewers to hover over data points for more information. The minimalist theme and rotated axis labels improve readability, adhering to best practices for effective data visualization.
+
+
+#  spatial visualization showing the locations of IPL matchesheld in India
+
+```{r}
+indian_cities <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_kesidi_IPL_Decoding_Data_viz_mini_2/Siri_MP_2_data/Indian_cities.csv") 
+```
+
+```{r}
+
+
+# Merge IPL dataset with geographical data
+matches_india <- matches %>%
+  left_join(indian_cities, by = c("city" = "District"))
+
+# Plot matches on the map using leaflet
+map <- leaflet(data = matches_india) %>%
+  addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, popup = ~venue)
+
+# Display the map
+map
+
+# Save the interactive plot as a self-contained HTML file
+htmlwidgets::saveWidget(map, "venue_matches_played.html")
+
+```
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a spatial visualization showing the locations of IPL matches held in India on a map using shape file  but I could not able to find correct information  India.shp file. The necessary steps for cleaning and preparing the data involved:
+Loading geographical data for Indian cities, including latitude and longitude coordinates.
+Merging the IPL dataset with geographical data based on city names.
+Plotting the matches on a map using the leaflet package.
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+With the plotted map, one could tell the story of where IPL matches were held across India. This visualization provides insights into the distribution of matches geographically, highlighting regions where cricket is popular and where IPL teams frequently play. Difficulties encountered during visualization creation might include mismatched city names between datasets or missing geographical coordinates for certain cities. Additional approaches to explore the data could involve clustering analysis to identify regions with high match density or overlaying demographic data to understand the audience reach of IPL matches.
+
+# How did you apply the principles of data visualizations and design for this assignment? 
+The principles of data visualization and design were applied by choosing an appropriate visualization method (spatial visualization using a map), ensuring clarity in the plotted data points, and providing interactivity for users to explore match details. The map provides a clear representation of match locations, allowing viewers to easily understand the geographical distribution of IPL matches in India. Additionally, popup markers with venue details enhance the user experience by providing additional information upon interaction with the map.
+
+
+
+# visualization of a ML model
+```{r}
+colSums(is.na(matches))
+```
+
+```{r}
+
+df_clean <- na.omit(matches)
+str(df_clean)
+```
+
+
+```{r}
+# Assuming you have already loaded the 'matches' dataset
+
+# Fit a linear regression model
+lm_model <- lm(win_by_runs ~ win_by_wickets + season, data = df_clean)
+
+# Summary of the linear regression model
+summary(lm_model)
+
+# Visualize the coefficients
+par(mfrow=c(1,1))
+plot(lm_model)
+
+```
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original plan seems to be creating a linear regression model to predict win_by_runs using win_by_wickets and season as predictors. This requires cleaning the data, ensuring the variables are in the correct format, and checking for missing values.
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+With these plots, you can tell the story of how win_by_wickets and season affect the win_by_runs. The coefficients plot will show the impact of each predictor variable on the outcome, and the summary will provide statistical details of the model's fit.One difficulty understanding how residues vs fitted interpretation could be interpreting the coefficients if the variables are not on the same scale. Normalizing or standardizing the variables could help. Additional approaches could include adding interaction terms between win_by_wickets and season to capture any combined effects.
+
+# How did you apply the principles of data visualizations and design for this assignment?
+The use of plot() and summary() functions aligns with the principles of data visualization by providing clear, concise, and informative visualizations and summaries of the linear regression model. However, more visualization techniques could be explored, such as residual plots or diagnostic plots, to further validate the model assumptions and performance.
+
+
+```{r}
+# Convert necessary variables to factors
+
+df_clean$winner <- as.factor(df_clean$winner)
+df_clean$city <- as.factor(df_clean$city)
+df_clean$team1 <- as.factor(df_clean$team1)
+df_clean$team2 <- as.factor(df_clean$team2)
+df_clean$toss_winner <- as.factor(df_clean$toss_winner)
+df_clean$toss_decision <- as.factor(df_clean$toss_decision)
+df_clean$venue <- as.factor(df_clean$venue)
+df_clean$umpire1 <- as.factor(df_clean$umpire1)
+df_clean$umpire2 <- as.factor(df_clean$umpire2)
+df_clean$umpire3 <- as.factor(df_clean$umpire3)
+```
+
+
+```{r}
+
+
+
+
+# Split the data into training and testing sets
+set.seed(123) # for reproducibility
+train_index <- sample(1:nrow(df_clean), 0.7 * nrow(df_clean))
+train_data <- df_clean[train_index, ]
+test_data <- df_clean[-train_index, ]
+
+# Train the Random Forest model
+rf_model <- randomForest(winner ~ ., data = train_data)
+
+# Predict the winner
+predictions <- predict(rf_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix <- confusionMatrix(predictions, test_data$winner)
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Plot the ROC curve
+roc_curve <- roc(test_data$winner, as.numeric(predictions))
+plot(roc_curve, main = "ROC Curve for Random Forest Model")
+
+```
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+This chart helps in evaluating the performance of the classification model by showing the counts of true positives, true negatives, false positives, and false negatives. This Roc plot illustrates the trade-off between sensitivity (true positive rate) and specificity (true negative rate) for different thresholds of the classification model.
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+This tells us how well the model is performing in terms of correctly predicting winners and losers of cricket matches. We can see where the model is making errors (false positives and false negatives). This ROC Curve  gives us a visual representation of the model's ability to distinguish between winners and losers. The closer the curve is to the top-left corner, the better the model's performance.One difficulty might be handling imbalanced classes if one class (winner or loser) dominates the dataset.Additional approaches could involve feature engineering to create new variables that might better capture the dynamics of cricket matches, such as player statistics, team rankings, 
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In data visualization, clarity and interpretability are key. Ensure that your plots are easy to understand and effectively convey the model's performance.Use appropriate labels, titles, and annotations to make your plots informative.Consider the audience and tailor the visualizations accordingly. For cricket enthusiasts, you might delve deeper into match-specific insights, while for a general audience, you might focus on overall model performance.

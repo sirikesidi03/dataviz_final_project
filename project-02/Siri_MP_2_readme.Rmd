@@ -1,0 +1,58 @@
+---
+title: "Readme"
+author: "Siri Kesidi"
+date: "2024-06-16"
+output: html_document
+---
+
+# **README.md FILE**
+# **DATA VISUALISATION MINI PROJECT-2**
+# **Decoding IPL Dynamics: A Data Visualization Exploration**
+
+- - -
+
+>**motivation **
+
+This project explores Kaggle's Indian Premier League (IPL) dataset to find information on individual statistics, team performances, and match results. Considering the IPL's status as one of the most popular cricket leagues globally, the purpose of this analysis is to identify patterns and trends that illustrate the league's dynamics throughout time. These variables give insights on in-depth analysis of batsmen,bowler and team performance.
+
+- - -
+
+- - -
+
+>**Data Description **
+
+The data set includes match ID, season year, location, date, and important match facts, among
+other details related to IPL matches played in different seasons. Whether or not the
+Duckworth-Lewis technique is used because of weather delays, it provides information about the
+teams that are playing, the results of their matches, and the results of their tosses. Details on
+the venue, player of the match, victory margins, and umpire identities are given. While
+Duckworth-Lewis applications and victory margins are examples of numerical variables, most
+qualities are recorded as character data types. In-depth documentation is also kept of
+cricket-specific information such as innings, batting and bowling teams, overs, balls, runs scored,
+extra runs, and player dismissals.
+
+- - -
+
+- - -
+
+>**Findings from plot **
+
+1. Each team's scoring pattern varies throughout the innings, with some teams scoring more aggressively in certain overs.
+
+2.  IPL matches are held across various cities in India, with notable concentrations in metropolitan areas.
+
+3. The model shows the impact of win_by_wickets and season on win_by_runs, providing insights into match dynamics.
+
+4. The model's performance is evaluated using a confusion matrix and ROC curve, indicating its ability to predict match winners effectively.
+
+- - -
+
+- - -
+
+>**Conclusion **
+
+The graphs and chart offer an in-depth summary of the IPL's history, team performances, and player statistics. They showcase the league's expansion, the competitive scene, and individual player perspectives. This research not only improves our understanding of the IPL, but also provides important data for teams and players to strategize and improve. The project successfully employs data visualization methods to make the complicated statistics more accessible and educational, highlighting the league's impact on the sport and economic significance.
+
+This project showcases the versatility of data analysis and visualization techniques in uncovering insights from IPL match data. By leveraging various visualizations and machine learning models, we gain valuable insights into team performance and match outcomes, contributing to a deeper understanding of the IPL phenomenon.
+
+- - -

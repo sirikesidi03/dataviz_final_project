@@ -1,0 +1,626 @@
+---
+title: "Siri_Decoding_IPL_data_Final_project"
+author: "Siri Kesidi"
+date: "2024-06-21"
+output: html_document
+---
+
+
+# ** Introduction **
+
+For this  project , the dataset taken from kaggle.The Indian Premier League (IPL) is a professional Twenty20 cricket league in India, typically held between March and May each year. It features eight to ten teams representing various cities or states across India. Established by the Board of Control for Cricket in India (BCCI) in 2007, the IPL is the world’s most-attended cricket league and has a significant brand value.
+
+
+# Clear all the dataset in environment
+
+```{r}
+rm(list=ls())
+```
+
+
+# Loading Required libraries
+```{r}
+library(tidyr)
+library(stringr)
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(readr)
+library(sf)
+library(leaflet)
+library(plotly)
+library(randomForest)
+library(caret)
+library(pROC)
+library(treemap)
+library(RColorBrewer) 
+```
+
+
+# Importing data
+```{r}
+
+
+matches <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_kesidi_Final_proj_data_viz/Siri_data_viz_Final_project_data/matches.csv")
+
+
+deliveries <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_kesidi_Final_proj_data_viz/Siri_data_viz_Final_project_data/deliveries.csv")
+
+```
+
+
+
+# **Data Description**
+The data set includes match ID, season year, location, date, and important match facts, among other details related to IPL matches played in different seasons. Whether or not the Duckworth-Lewis technique is used because of weather delays, it provides information about the teams that are playing, the results of their matches, and the results of their tosses. Details on the venue, player of the match, victory margins, and umpire identities are given. While Duckworth-Lewis applications and victory margins are examples of numerical variables, most qualities are recorded as character data types. In-depth documentation is also kept of cricket-specific information such as innings, batting and bowling teams, overs, balls, runs scored, extra runs, and player dismissals.
+
+
+```{r}
+summary(matches)
+```
+
+```{r}
+summary(deliveries)
+```
+
+# Structure of the data
+
+```{r}
+str(deliveries)
+```
+
+
+```{r}
+str(matches)
+```
+
+##  Winning toss may lead to winning match
+
+
+```{r}
+# Create a new column indicating if toss winner is also the match winner
+matches <- matches %>%
+  mutate(toss_winner_is_match_winner = ifelse(toss_winner == winner, "Won", "Lost"))
+
+# Summarize the results
+toss_win_summary <- matches %>%
+  group_by(toss_winner_is_match_winner) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = round(100 * count / sum(count), 1))
+
+toss_win_summary
+
+
+```
+
+
+
+```{r}
+# Create labels for the pie chart
+toss_win_summary <- toss_win_summary %>%
+  mutate(label = paste(toss_winner_is_match_winner, ": ", percentage, "%", sep=""))
+ggplot(toss_win_summary, aes(x = "", y = count, fill = toss_winner_is_match_winner)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y") +
+  labs(title = "Impact of Winning the Toss on Winning the Match", x = NULL, y = NULL, fill = "Match Outcome") +
+  theme_void() +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5))
+```
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original intention was to create a pie chart to visualize the impact of winning the toss on winning the match. The data needed to be cleaned by creating a new column indicating whether the toss winner was also the match winner. This required comparing the toss_winner column with the winner column and assigning a value of "Won" or "Lost" accordingly. Then, summarizing the results involved grouping the data by the new column and calculating the count and percentage of matches won or lost after winning the toss.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The plot tells the story of how winning the toss may influence the outcome of the match. It shows the distribution of matches won and lost based on whether the toss winner also emerged victorious in the match. The visualization highlights the percentage of matches won or lost after winning the toss, providing insights into the potential impact of the toss on the match result.
+
+One difficulty encountered during visualization creation might be ensuring clarity and readability of the labels on the pie chart, especially if there are many categories or if the percentages are close together. Additional approaches to explore the data could include conducting further analysis to understand if the impact of winning the toss varies across different teams, venues.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, the plot effectively conveys the relationship between winning the toss and winning the match through the use of color-coded segments in the pie chart. The title and labels provide context and clarity, while the layout and design of the chart ensure ease of interpretation for the audience.
+
+
+
+
+
+##   performance of each team when batting first and winning matches
+
+```{r}
+
+# Filter matches where team batted first and won
+matches_batting_first <- matches %>%
+  mutate(batting_first = ifelse(toss_decision == "bat", team1, team2)) %>%
+  filter(winner == batting_first)
+
+# Summarize the runs scored by each team when batting first and winning
+batting_first_wins <- deliveries %>%
+  filter(match_id %in% matches_batting_first$id) %>%
+  group_by(match_id, batting_team) %>%
+  summarise(total_runs = sum(total_runs)) %>%
+  ungroup() %>%
+  inner_join(matches_batting_first, by = c("match_id" = "id")) %>%
+  filter(batting_team == winner)
+
+batting_first_wins
+
+
+```
+
+
+
+```{r}
+# Create a box plot
+box_plot <- ggplot(batting_first_wins, aes(x = batting_team, y = total_runs)) +
+  geom_boxplot() +
+  labs(title = "Runs Scored by Each Team When Batting First and Winning",
+       x = "Team",
+       y = "Total Runs Scored") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the box plot
+print(box_plot)
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original plan was to create a box plot to visualize the runs scored by each team when batting first and winning matches. To prepare the data, I first filtered the matches data set to include only matches where the team batting first also won. Then, I summarized the total runs scored by each team in these matches using the deliveries data set, joining the two data sets based on the match ID.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The story conveyed by the plot is about the performance of teams when they bat first and win matches. The box plot illustrates the distribution of total runs scored by each team in such scenarios, allowing for comparisons between teams. This visualization provides insights into the batting prowess of teams when setting a target and successfully defending it.
+
+One potential difficulty in creating the visualization could be ensuring that the box plot effectively represents the distribution of runs scored by each team without cluttering the plot with outliers or overlapping boxes. Additional approaches to explore the data could involve analyzing batting performances in different conditions, such as home vs. away matches Ground.This may impact in audience support of the home ground also as home team knows better about home ground conditions than other teams.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, the box plot effectively displays the central tendency and variability of runs scored by each team, with clear labels and titles for easy interpretation. The use of color or different fill patterns could further enhance the plot to distinguish between teams visually. 
+
+
+
+
+
+# Virat Kohli Runs against Bowlers
+
+```{r}
+
+# Filter data for a single batsman (e.g., Virat Kohli)
+batsman_data <- deliveries %>%
+  filter(batsman == "V Kohli") %>%
+  group_by(bowler) %>%
+  summarise(runs = sum(batsman_runs)) %>%
+  top_n(n = 50, wt = runs)
+
+batsman_data
+
+
+```
+
+
+
+
+```{r}
+# Create a treemap
+treemap(batsman_data, 
+        index = "bowler",        # Categorical variable
+        vSize = "runs",          # Quantitative variable
+        type = "index",          # Type sets the organization and color scheme
+        fontsize.title = 12,
+        fontfamily.title =  "Arial",
+        fontfamily.labels =  "Arial",
+        title = "Runs by V Kohli against Different Bowlers",
+        fontface.labels = "bold",
+        border.col = "#FFFFFF",
+        fontsize.legend = 0,
+        bg.labels = "black",
+        fontcolor.labels = "#FFFFFF",
+        aspRatio = 1.1
+)
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a treemap visualizing the runs scored by Virat Kohli against different bowlers. To prepare the data, we filtered the 'deliveries' dataset to include only the records where Virat Kohli was the batsman. We then grouped the data by the bowler and calculated the total runs scored by Kohli against each bowler. The top 50 bowlers based on the total runs scored were selected for visualization.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The resulting treemap presents the runs scored by Virat Kohli against different bowlers, with each bowler represented by a rectangle whose size corresponds to the number of runs scored. The treemap allows for a quick comparison of Kohli's performance against various bowlers, highlighting the bowlers against whom he has scored the most runs.
+
+While creating the visualization, one potential difficulty could be handling a large number of bowlers, ensuring that the treemap remains visually interpretable. Additional approaches to explore the data could involve analyzing Kohli's performance against specific types of bowlers (e.g., spinners vs. pacers) .
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied clear labeling, a visually appealing color scheme, and an appropriate aspect ratio to enhance the readability and interpretation of the treemap. The use of rectangles of varying sizes helps to effectively visualize the distribution of runs scored by Kohli against different bowlers, facilitating insights into his batting performance.
+
+
+
+
+
+## Number runs(0,1,2,3,4,5,6) scored by Each team 
+
+```{r}
+
+
+# Summarize the runs scored by each team for each run type (0 to 6)
+runs_summary <- deliveries %>%
+  filter(total_runs %in% 0:6) %>%
+  group_by(batting_team, total_runs) %>%
+  summarise(run_count = n()) %>%
+  ungroup()
+
+runs_summary
+
+
+
+
+
+
+```
+
+
+
+```{r}
+# Create the bar plot
+bar_plot <- ggplot(runs_summary, aes(x = batting_team, y = run_count, fill = factor(total_runs))) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Distribution of Runs Scored by Each Team",
+       x = "Team",
+       y = "Count of Runs",
+       fill = "Runs") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the bar plot
+print(bar_plot)
+```
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a bar plot showing the distribution of runs scored by each cricket team, categorized by different run types (0 to 6).To prepare the data, we filtered the deliveries dataset to include only runs ranging from 0 to 6. Then, we grouped the data by batting team and total runs scored, calculating the count of each run type for each team.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The resulting bar plot visualizes the distribution of runs scored by each team, with each run type represented by a different color. This visualization allows us to observe the distribution of runs scored by each team across different run types, providing insights into the batting performance of each team.More number of dot balls(zero's) may be lead to having pressure on batsmen so may have poor batting line up.So,This give insight to strengthen the batters by choosing good batsmen in auction and suitable batsmen to send at particular situation.
+
+One potential difficulty encountered while creating the visualization could be managing the color scheme for different run types to ensure clarity and readability. Additional approaches to explore the data could involve analyzing the distribution of runs scored by individual players within each team or examining trends in run scoring over different matches or seasons.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied clear labeling, appropriate axis titles, and a visually appealing color scheme to enhance readability and interpretation of the bar plot. The use of stacked bars helps to compare the contribution of each run type to the total runs scored by each team, facilitating effective analysis of batting performance.
+
+
+
+
+
+
+##  total wickets taken by each team for each season
+
+```{r}
+# Assuming 'deliveries' dataset is the main dataset
+team_wickets <- deliveries %>%
+  left_join(matches, by = c("match_id" = "id")) %>%
+  group_by(season, bowling_team) %>%
+  summarize(wicket = sum(player_dismissed != "", na.rm = TRUE)) %>%
+  ungroup()
+
+team_wickets
+
+```
+
+
+
+```{r}
+# Plot the data
+ggplot(team_wickets, aes(x = factor(season), y = wicket, color = bowling_team, group = bowling_team)) +
+  geom_line(size = 1.25) +
+  theme(legend.position = "bottom",
+        legend.direction = "horizontal") +
+  scale_y_continuous(limits = c(60, 125)) +
+  scale_x_discrete(name = "Season", limits = as.character(2008:2019)) +
+  ggtitle("Total Wickets by Teams by Season") +
+  labs(color = "Team")
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a line plot showing the total wickets taken by each cricket team for each season from 2008 to 2019.To prepare the data, we joined the 'deliveries' dataset with the 'matches' dataset based on the match ID, then grouped the data by season and bowling team. We calculated the total wickets taken by each team in each season, considering a wicket to be taken whenever a player was dismissed.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The resulting line plot visualizes the trend of wickets taken by each team across different seasons. Each team is represented by a colored line, allowing for easy comparison of wicket-taking performance over time. The plot provides insights into the bowling strength of each team and how it has evolved over the years.As from Line plot we can observe that Chennai super kings has betterbowling department over the years.
+
+One potential difficulty encountered while creating the visualization could be managing the legend when there are many teams, ensuring that the colors are distinguishable and the legend is legible. Additional approaches to explore the data could involve analyzing the distribution of wickets taken by different types of bowlers within each team .
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied clear labeling, appropriate axis titles, and a visually appealing color scheme to enhance readability and interpretation of the line plot. The use of lines helps to track the trend of wickets taken by each team over multiple seasons, facilitating effective analysis of bowling performance.
+
+
+
+
+
+
+# Top 3 batsmen of all time aganist each team
+
+```{r}
+# Calculate total runs scored by each batsman against each team
+batsmen_runs_by_team <- deliveries %>%
+  group_by(batsman, bowling_team) %>%
+  summarise(total_runs = sum(batsman_runs))
+
+batsmen_runs_by_team
+
+#  Identify top 3 batsmen based on total runs scored
+top_batsmen <- batsmen_runs_by_team %>%
+  group_by(batsman) %>%
+  summarise(total_runs = sum(total_runs)) %>%
+  top_n(3, total_runs) %>%
+  select(batsman,total_runs)
+
+top_batsmen
+```
+
+
+
+```{r}
+#  Create tree maps for each of the top 3 batsmen
+for (batsman in top_batsmen$batsman) {
+  batsman_data <- batsmen_runs_by_team %>%
+    filter(batsman == batsman)
+  
+treemap(batsman_data, 
+          index = "bowling_team",          # Categorical variable
+          vSize = "total_runs",            # Quantitative variable
+          type = "index",                  # Type sets the organization and color scheme
+          fontsize.title = 12,
+          fontfamily.title = "Arial",      # Specify the desired font family
+          fontfamily.labels = "Arial",     # Specify the desired font family
+          title = paste("Runs by", batsman, "against Different Teams"),
+          fontface.labels = "bold",
+          border.col = "#FFFFFF",
+          fontsize.legend = 0,
+          bg.labels = "black",
+          fontcolor.labels = "#FFFFFF",
+          aspRatio = 1.1,
+          position.legend = "none",        # Hide legend
+          align.labels = list(c("center", "center")),  # Center-align labels
+          overlap.labels = 0.5             # Reduce label overlap
+  )
+}
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a series of tree maps visualizing the runs scored by the top 3 batsmen of all time against each team. To prepare the data, we calculated the total runs scored by each batsman against each bowling team using the 'deliveries' dataset. We then identified the top 3 batsmen based on their total runs scored against all teams.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The resulting tree maps display the runs scored by each of the top 3 batsmen against different bowling teams. Each tree map represents one batsman, with rectangles representing each bowling team and their corresponding total runs scored against that team. The size of the rectangles indicates the magnitude of runs scored, allowing for a quick comparison of batting performance against different opponents.
+
+The story conveyed by these plots is the dominance of the top batsmen across various teams, highlighting their consistency and proficiency in scoring runs against different opponents. One potential difficulty encountered while creating the visualizations could be handling a large number of teams or batsmen, ensuring that the tree maps remain visually interpretable.additional approaches could involve analyzing the distribution of runs scored by each batsman against different types of teams (e.g., home vs. away matches).
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied clear labeling, an appropriate color scheme, and an aspect ratio to enhance the readability and interpretation of the tree maps. The use of rectangles and varying sizes effectively visualizes the distribution of runs scored by each batsman against different bowling teams, providing insights into their batting performance.
+
+
+
+
+
+# Top striker of the ball 
+
+```{r}
+ #  Filter batsmen who have faced at least 500 balls
+batsmen_filtered <- deliveries %>%
+  group_by(batsman) %>%
+  filter(n() > 500)
+batsmen_filtered
+
+#  Calculate the average strike rate for each batsman
+batsmen_strike_rate <- batsmen_filtered %>%
+  group_by(batsman) %>%
+  summarise(strike_rate = mean(batsman_runs) * 100)
+
+batsmen_strike_rate
+
+#  Select the top 10 batsmen with the highest strike rates
+top_batsmen <- batsmen_strike_rate %>%
+  top_n(n = 10, wt = strike_rate)
+
+top_batsmen
+
+```
+
+
+
+```{r}
+# Plot the data
+ggplot(top_batsmen, aes(reorder(batsman, -strike_rate), strike_rate, fill = batsman)) +
+  geom_bar(stat = "identity") +
+  xlab("Batsman") + 
+  ylab("Strike Rate") +
+  ggtitle("Top Strikers of the Ball", subtitle = "Minimum 500 balls faced") +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) +
+  guides(fill = FALSE)
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original chart planned for this assignment was a bar plot depicting the top 10 strikers of the ball, based on their strike rates, among batsmen who have faced at least 500 balls. To prepare the data, we first filtered the 'deliveries' dataset to include only batsmen who have faced at least 500 balls. Then, we calculated the average strike rate for each batsman and selected the top 10 batsmen with the highest strike rates.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+The resulting bar plot visualizes the strike rates of the top 10 batsmen, with the x-axis representing the batsmen and the y-axis representing their strike rates. Each bar corresponds to a batsman, and the height of the bar indicates their strike rate. The plot is titled "Top Strikers of the Ball," emphasizing the batsmen's ability to score runs quickly, with a subtitle indicating the minimum requirement of facing 500 balls.It means pitch conditions not effectthe striker he tries to hit the ball as mandatory.SO,less dot balls.More Runs are scored
+
+With this plot, we can tell a story about the batsmen who are most effective at scoring runs at a rapid pace. It highlights the performance of these top strikers and provides insights into their batting abilities. One potential difficulty encountered while creating the visualization could be handling a large number of batsmen and ensuring that the plot remains visually clear and interpretable.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied clear labeling, a suitable color scheme, and appropriate formatting to enhance the readability and interpretation of the bar plot. The plot effectively highlights the top performers and communicates the key insights about their strike rates in a concise manner.
+
+
+
+
+
+## Type of dismissals by different players
+
+```{r}
+df<-deliveries %>% 
+    filter(player_dismissed=="AB de Villiers"| player_dismissed=="SK Raina" |player_dismissed=="RG Sharma"|player_dismissed=="G Gambhir") %>%
+    group_by(player_dismissed,dismissal_kind) %>% summarise(type= length(dismissal_kind))
+
+df 
+```
+
+
+```{r}
+treemap(df, 
+        index=c("player_dismissed","dismissal_kind"), 
+        vSize = "type", 
+        vColor = "dismissal_kind",
+        type="categorical", 
+        palette = brewer.pal(6,"Set2"),  
+        fontsize.title = 15,
+        fontfamily.title = "serif",
+        fontfamily.labels = "italic",
+        title = "Type of Dismissals ",
+        aspRatio = 1,
+        border.col="#FFFFFF",bg.labels = "black" ,fontcolor.labels= "#FFFFFF",fontsize.legend = 0)
+```
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+ the original plan was to create a treemap visualization showing the types of dismissals for specific players, including AB de Villiers, SK Raina, RG Sharma, and G Gambhir. To prepare the data, we filtered the 'deliveries' dataset to include only dismissals of these players and then grouped the data by both the player dismissed and the type of dismissal, summarizing the count of each type.
+ 
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+With this plot, we can tell a story about the dismissal patterns of these players and compare their vulnerabilities or strengths against different types of bowling. One potential difficulty encountered while creating the visualization could be ensuring that the treemap remains visually clear and interpretable, especially if there are many different types of dismissals.If we want outthe batsmen that kind of dismissal ball should be balled by bowler.He can be match winner by performing that strategies on batsmen and can able to win the game.
+
+additional approaches could involve analyzing dismissal patterns over different time periods or against specific opponents, investigating the effectiveness of different bowling strategies against these players.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+In terms of data visualization principles, we applied a clear and informative title, appropriate color palettes, and readable font styles to enhance the clarity and effectiveness of the treemap. The plot effectively communicates the distribution of dismissals for each player and facilitates comparisons between them.
+
+
+
+
+
+##  Runs  VS Ball faces by top scorer
+
+```{r}
+# Filter deliveries data for the specified batsmen
+filtered_data1 <- deliveries %>%
+  filter(batsman %in% c("V Kohli", "SK Raina", "RG Sharma", "G Gambhir"))
+filtered_data1
+# Group by match_id and calculate cumulative runs and balls faced
+filtered_data_1 <- filtered_data1 %>%
+  group_by(match_id) %>%
+  mutate(cum_run = cumsum(batsman_runs),
+         cum_ball = 1:length(match_id))
+filtered_data_1
+# Filter the data for dismissals of specified batsmen
+dismissals_data_1 <- filtered_data_1 %>%
+  filter(player_dismissed %in% c("V Kohli", "SK Raina", "RG Sharma", "G Gambhir"))
+dismissals_data_1
+
+
+```
+
+
+```{r}
+# Plot runs scored vs balls faced in all matches for specified batsmen
+ggplot(dismissals_data_1, aes(cum_ball, cum_run, col = batsman)) +
+  geom_point() +
+  xlab("Balls") +
+  ylab("Runs") +
+  ggtitle("Runs Scored vs Balls Faced for Selected Batsmen in All Matches")
+
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original goal was to create a scatter plot illustrating the runs scored versus the balls faced by the top batsmen, including V Kohli, SK Raina, RG Sharma, and G Gambhir, across different matches. To achieve this, the data needed cleaning and preparation, including filtering the 'deliveries' dataset to include only the specified batsmen, grouping the data by match ID, and calculating cumulative runs and balls faced.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+Through this visualization, one can discern patterns in the batsmen's performances across various matches. It can highlight their batting strategies, consistency, and effectiveness in different match scenarios. plot depicts the performance of these batsmen in terms of runs accumulated relative to the number of balls faced. Each point on the scatter plot represents a dismissal event for one of the specified batsmen in a match, with different colors distinguishing between the batsmen.
+
+During the visualization process, challenges may have arisen in ensuring the accuracy of the data and in effectively conveying the information through the plot. Additional approaches to explore the data could include incorporating contextual information such as match outcomes, opposition teams, and match venues to provide deeper insights into the batsmen's performances.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+Principles of data visualization and design were applied by choosing an appropriate plot type (scatter plot), labeling axes clearly, providing a descriptive title, and using different colors to distinguish between individual batsmen. These design choices aim to make the plot easily interpretable and informative for the audience.
+
+
+
+
+
+## Top 10 Most Used Bigrams in IPL data set
+
+```{r}
+
+
+# Combine all text data from relevant columns in both datasets
+text_data <- c(matches$venue, deliveries$batting_team, deliveries$bowling_team)
+
+# Convert to lowercase for consistency
+text_data <- tolower(text_data)
+
+# Tokenize the text data into words
+words <- str_split(text_data, "\\s+")
+
+# Extract bigrams
+bigrams <- lapply(words, function(x) {
+  if(length(x) > 1) {
+    paste(x[1:(length(x) - 1)], x[2:length(x)], sep = " ")
+  } else {
+    NA
+  }
+})
+
+# Flatten the list of bigrams
+bigrams <- unlist(bigrams)
+
+# Create a frequency table of bigrams
+bigram_freq <- table(bigrams)
+
+# Sort the frequency table in descending order
+sorted_bigrams <- sort(bigram_freq, decreasing = TRUE)
+
+# Display the top 10 most used bigrams
+head(sorted_bigrams, 10)
+
+```
+```{r}
+# Convert the sorted_bigrams table to a data frame
+bigram_df <- data.frame(bigram = names(sorted_bigrams)[1:10],
+                         frequency = as.numeric(sorted_bigrams)[1:10])
+
+# Create a bar plot
+ggplot(bigram_df, aes(x = reorder(bigram, frequency), y = frequency)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Top 10 Most Used Bigrams",
+       x = "Bigram",
+       y = "Frequency") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+```
+
+
+
+# What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+The original plan was to create a bar plot illustrating the top 10 most used bigrams extracted from text data encompassing venue names, batting teams, and bowling teams from both the 'matches' and 'deliveries' datasets. The necessary steps involved cleaning the text data by converting it to lowercase for consistency, tokenizing it into individual words, and then extracting bigrams (pairs of adjacent words). The frequency of each bigram was calculated, and the top 10 most used bigrams were selected for visualization.
+
+
+# What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+With the generated plot, one can discern the most commonly occurring pairs of words in the dataset, providing insights into prevalent combinations of words. For instance, it might reveal frequently occurring venue names or common pairings of batting and bowling teams. Challenges in visualization creation might include handling large volumes of text data efficiently and ensuring the interpretability of the plot by appropriately labeling axes and providing a clear title.
+
+
+# How did you apply the principles of data visualizations and design for this assignment?
+
+labeling axes clearly, providing a descriptive title, and using contrasting colors to enhance readability and interpretability.This  effectively communicates the purpose of the plot and the data it represents, aligning with the principles of clarity and informativeness in data visualization design.
