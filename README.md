@@ -1,45 +1,30 @@
-# Data Visualization and Reproducible Research
+Data Visualization and Reproducible Research
+Siri Kesidi
 
-> Firstname Lastname. 
+Learn more about me in my GitHub profile page https://github.com/sirikesidi03.
 
-Learn more about me in my [GitHub profile page](https://github.com/reiminer). 
+The following is a sample of products created during the "Data Visualization and Reproducible Research" course.
 
+Project 01
+In the project_01/ folder you can find an in-depth analysis of the Indian Premier League (IPL) dynamics through data visualization techniques. This project focuses on exploring individual statistics, team performances, and match results to uncover patterns and trends within the IPL over the years.
 
-The following is a sample of products created during the _"Data Visualization and Reproducible Research"_ course.
+Sample data visualization:
 
+A bar plot showing the number of teams participating in the IPL over different seasons, indicating the league's growth and economic impact.
 
-## Project 01
+Project 02
+In this project, I explored various aspects of the IPL data, including scoring patterns, city-wise match distributions, and model predictions of match outcomes. The project, located in the project_02/ folder, leverages machine learning models to predict match winners and offers insights into team performance dynamics.
 
-In the `project_01/` folder you can find... _[add short description of your revised project here]_
+Sample data visualization:
 
-**Sample data visualization:** 
+A pie chart illustrating the distribution of dismissal types for Virat Kohli, providing insights into his gameplay and areas for improvement.
 
-_[include your favorite visualization from this project here]_
-<img src="https://github.com/reisanar/figs/raw/master/echarts.png" width="70%" height="70%">
+Project 03
+In this project, I explored IPL data further by analyzing match outcomes, batting and bowling performances, and player statistics. The project_03/ folder contains a comprehensive analysis of various aspects of IPL data, including match outcomes, dismissal patterns, and performance metrics of top players.
 
+Sample data visualization:
 
-## Project 02
+A scatter plot visualizing the performance of top batsmen in terms of runs scored versus balls faced in various matches, offering insights into their batting strategies and effectiveness.
 
-In this project, I explored ... _[short description of your revised project goes here]_ Find the code and report in the `project_02/` folder.
-
-**Sample data visualization:** 
-
-_[include your favorite visualization from this project here]_
-<img src="https://raw.githubusercontent.com/reisanar/dataviz_final_project/main/figures/fl_higher_ed.png" width="80%" height="80%">
-
-(you can place your figures in the `figures/` folder and use the `![](path_to_picture)` option to add the pictures here)
-
-
-## Project 03
-
-In this project, I explored ... _[short description of the data visualizations you for this part of the project produced goes here]_
-
-**Sample data visualization:** 
-
-_[include your favorite visualization from this project here]_
-<img src="https://github.com/reisanar/figs/raw/master/concrete_density.png" width="80%" height="80%">
-
-
-### Moving Forward
-
-_Please add here a short reflection on what you learned and what you plan to continue exploring in terms of data visualization, data storytelling, reproducible research, and/or related topics._
+Moving Forward
+Through these projects, I have gained a deeper understanding of data visualization techniques and their applications in analyzing complex datasets like those of the IPL. I plan to continue exploring data storytelling, focusing on how to present complex data insights in an accessible and engaging manner. Additionally, I aim to enhance my skills in reproducible research to ensure that my analyses can be easily replicated and built upon by others in the field.

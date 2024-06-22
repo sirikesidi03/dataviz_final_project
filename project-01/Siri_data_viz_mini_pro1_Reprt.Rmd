@@ -1,0 +1,266 @@
+---
+title: "Decoding IPL Dynamics: A Data Visualization Exploration "
+author: "Siri Kesidi"
+date: "2024-06-03"
+output: html_document
+---
+
+
+
+
+- - -
+
+#** Introduction **
+
+For this mini project , the dataset  taken from kaggle.The Indian Premier League (IPL) is a
+professional Twenty20 cricket league in India, typically held between March and May each year. It
+features eight to ten teams representing various cities or states across India. Established by the
+Board of Control for Cricket in India (BCCI) in 2007, the IPL is the world's most-attended cricket
+league and has a significant brand value.
+
+- - -
+
+
+# Clear all the dataset in environment
+
+```{r}
+rm(list=ls())
+```
+
+
+# Loading Required libraries
+```{r}
+library(tidyr)
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(readr)
+```
+
+# Importing data
+```{r}
+
+
+matches <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_Data_viz_Mini_1/Siri_MP_1_data/matches.csv")
+
+deliveries <- read_csv("C:/Users/Administrator/Desktop/SUMMER_A_2024/Data_Visualisations/Siri_Data_viz_Mini_1/Siri_MP_1_data/deliveries.csv")
+
+```
+# **Data Description**
+The data set includes match ID, season year, location, date, and important match facts, among other details related to IPL matches played in different seasons. Whether or not the Duckworth-Lewis technique is used because of weather delays, it provides information about the teams that are playing, the results of their matches, and the results of their tosses. Details on the venue, player of the match, victory margins, and umpire identities are given. While Duckworth-Lewis applications and victory margins are examples of numerical variables, most qualities are recorded as character data types. In-depth documentation is also kept of cricket-specific information such as innings, batting and bowling teams, overs, balls, runs scored, extra runs, and player dismissals.
+
+```{r}
+summary(matches)
+```
+
+```{r}
+summary(deliveries)
+```
+
+# Structure of the data
+
+```{r}
+str(deliveries)
+```
+
+
+```{r}
+str(matches)
+```
+
+
+# count no.of seasons with teams played in each season and print  team names in each season
+```{r}
+
+# Create a summary of teams per season
+teams_per_season <- matches %>%
+  select(season, team1, team2) %>%
+  gather(key = "home_away", value = "team", -season) %>%
+  distinct(season, team) %>%
+  group_by(season) %>%
+  summarize(
+    teams_count = n(),
+    teams = paste(unique(team), collapse = ", ")
+  )
+
+# Print the result
+print(teams_per_season)
+
+```
+
+```{r}
+# Create a visualization using ggplot2
+ggplot(teams_per_season, aes(x = factor(season), y = teams_count)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  scale_y_continuous(breaks = seq(0, max(teams_per_season$teams_count), by = 1)) +
+  labs(title = "Number of Teams per IPL Season",
+       x = "Season",
+       y = "Number of Teams") +
+  theme_minimal()
+```
+
+- - -
+
+# What were the original charts you planned to create for this visualization?
+The original chart planned for this visualization was a bar plot showing the number of teams per
+IPL season.
+
+# What story could you tell with your plot?
+With this plot, we can observe how the number of teams participating in the IPL has changed over different seasons. We can identify trends, such as periods of expansion or stability in the
+league, and how the dynamics of team participation evolved over time.The Number of teams
+increasing and also consisting of conducting league determines the popularity of league.The
+league gives boost to economy of India and places where tournament is conducted.
+
+# How did you apply the principles of data visualizations and design for this visualization?
+The principles of data visualization and design were applied by selecting an appropriate chart
+type (bar plot) to display the categorical data (season) against the quantitative data (number of
+teams). The use of a minimal theme ensures clarity and focus on the data, while labeling the axes
+and providing a title adds context and clarity to the plot. Additionally, scaling the y-axis to
+display integer values ensures that the chart accurately represents the count of teams without
+decimal points, facilitating easier interpretation of the data.
+
+- - -
+
+# Finding which team is winner in  each season with the number of wins.
+```{r}
+season_winners <- matches %>%
+  group_by(season, winner) %>%
+  summarize(wins = n()) %>%
+  arrange(season, desc(wins)) %>%
+  slice(1) %>% # Select the team with the most wins for each season
+  select(season, winner,wins)
+
+# Print the result
+print(season_winners)
+
+```
+
+```{r}
+ggplot(season_winners, aes(x = factor(season), y = wins, fill = winner)) +
+  geom_bar(stat = "identity") +
+  labs(title = "IPL Season Winners",
+       x = "Season",
+       y = "Number of Wins",
+       fill = "Winner") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  guides(fill = guide_legend(title = "Winner"))
+
+```
+
+
+- - -
+
+
+# What were the original charts you planned to create for this visualization?
+The original plan was to create a bar chart visualizing the number of wins by each winning team in
+each IPL season.
+
+# What story could you tell with your plot?
+The plot showcases the winning team for each IPL season along with the number of wins they
+achieved. It highlights the dominance of certain teams across different seasons and provides
+insights into the performance trends of IPL teams over time.The consistent wins of team may help
+building a good brand value over the time.This may help  more income to players playing in
+respective teams and also can help in having better training equipment for practicing the game.
+
+# How did you apply the principles of data visualizations and design for this visualization?
+The plot data in a straightforward bar chart format, with each bar representing the number of wins
+for a specific team in a season. The colors are used effectively to distinguish between different
+winning teams, aiding in easy identification. The chart is labeled clearly, with informative
+titles for both axes and a legend to explain the color scheme.The theme Adjusts the angle of the
+x-axis labels to 45 degrees for better readability at years.
+ 
+ 
+- - -
+ 
+# Checking in which city most of the matches were played 
+```{r}
+ggplot(matches[which(!is.na(matches$city)),],
+       aes(city,fill=city,rm.na=T))+
+        geom_bar()+
+        guides(TRUE)+
+        coord_flip()+
+        theme_minimal()+
+  labs(title = "Total No. Of Matches Played In City")+
+       ylab("No. Of Matches Played ")
+  
+  
+       
+```
+
+- - -
+
+# What were the original charts you planned to create for this visualization?
+The original intention was to create a bar chart showing the distribution of matches played across
+different cities.
+
+# What story could you tell with your plot?
+The plot depicts the total number of matches played in each city, providing insights into where
+most IPL matches have been held over the years. It showcases the cities that have hosted a
+significant number of matches, revealing patterns of match distribution across different
+locations.This may also influence has people come to watch match in a particular stadium may
+increase the tourists travel to city.The city may be get more economy than the regular days.
+
+# How did you apply the principles of data visualizations and design for this visualization?
+The plot effectively communicates the distribution of matches across cities, with each bar
+representing the total number of matches played in a specific city. The use of color (fill)
+distinguishes between different cities, aiding in easy identification. Additionally, flipping the
+coordinates (coord_flip) makes the bars horizontal for better readability.guides(TRUE): Displaythe legend, indicating the mapping of fill colors to city names.
+
+
+- - -
+
+
+# A batsman Virat Kohli dissmisal
+```{r}
+
+virat_dismissals <- deliveries %>% 
+  filter(player_dismissed == "V Kohli") %>%
+  group_by(dismissal_kind) %>%
+  summarise(times_dismissed = n())
+
+
+virat_dismissals
+
+```
+
+
+```{r}
+# Create pie chart for Virat Kohli's dismissal types
+ggplot(virat_dismissals, aes(x = "", y = times_dismissed, fill = dismissal_kind)) +
+  geom_bar(stat = "identity") +
+  coord_polar("y") +
+  labs(title = "Dismissal Types of Virat Kohli",
+       fill = "Dismissal Type") +
+  theme_void() 
+```
+
+
+
+- - -
+
+
+# What were the original charts you planned to create for this visualization?
+The original chart planned for this visualization was a pie chart depicting the dismissal types of
+Virat Kohli in IPL matches.
+
+# What story could you tell with your plot?
+The plot portrays the distribution of dismissal types experienced by Virat Kohli throughout his
+IPL career. Each segment of the pie chart represents a specific dismissal type, such as caught,
+bowled, lbw, etc., and the size of each segment reflects the proportion of times Virat Kohli was
+dismissed in that manner. By examining this visualization, viewers can gain insights into the most
+common modes of dismissal for one of cricket's top players.This spots may be his weak points where
+he can get out and a good learning thing for him to overcome his weakness. 
+
+# How did you apply the principles of data visualizations and design for this visualization?
+The use of a pie chart allows for easy comparison of dismissal types, with each segment clearly
+labeled to denote the specific type of dismissal. The choice of colors helps differentiate between
+different dismissal types, aiding in interpretation. Additionally, the radial layout of the pie
+chart facilitates quick comprehension of the distribution of dismissal types.theme_void(): This
+removes the background and grid lines from the plot, leaving only the data and labels.
+
+
+- - -
+
+
+
